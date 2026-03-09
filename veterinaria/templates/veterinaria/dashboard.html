@@ -1,0 +1,32 @@
+{% extends 'veterinaria/base.html' %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+
+<h1>Bienvenido a PETS S.A.</h1>
+<p>Centro Veterinario de Cartagena</p>
+
+<br>
+<table>
+    <tr>
+        <th>Módulo</th>
+        <th>Total registros</th>
+        <th>Acción</th>
+    </tr>
+    <tr>
+        <td> Mascotas</td>
+        <td>{{ total_mascotas }}</td>
+        <td><a href="{% url 'mascota_lista' %}" class="btn btn-green">Ver</a></td>
+    </tr>
+    <tr>
+        <td> Clientes</td>
+        <td>{{ total_clientes }}</td>
+        <td><a href="{% url 'cliente_lista' %}" class="btn btn-green">Ver</a></td>
+    </tr>
+    <tr>
+        <td> Medicamentos</td>
+        <td>{{ total_medicamentos }}</td>
+        <td><a href="{% url 'medicamento_lista' %}" class="btn btn-green">Ver</a></td>
+    </tr>
+</table>
+
+{% endblock %}

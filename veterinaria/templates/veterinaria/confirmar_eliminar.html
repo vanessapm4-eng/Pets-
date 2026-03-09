@@ -1,0 +1,18 @@
+{% extends 'veterinaria/base.html' %}
+{% block title %}Eliminar{% endblock %}
+{% block content %}
+
+<h1>⚠️ Confirmar eliminación</h1>
+<br>
+<div style="background:white; padding:1.5rem; border-radius:8px; max-width:400px;">
+    <p>¿Estás segura de que deseas eliminar <strong>"{{ objeto }}"</strong>?</p>
+    <p style="color:#e74c3c; font-size:0.9rem;">Esta acción no se puede deshacer.</p>
+    <br>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-red">🗑 Sí, eliminar</button>
+        <a href="javascript:history.back()" class="btn btn-gray">Cancelar</a>
+    </form>
+</div>
+
+{% endblock %}

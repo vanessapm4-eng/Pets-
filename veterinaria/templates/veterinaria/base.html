@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}PETS S.A.{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'estilos.css' %}">
+</head>
+<body>
+<nav>
+    <a href="{% url 'dashboard' %}">🐾 PETS S.A.</a>
+    <a href="{% url 'mascota_lista' %}">Mascotas</a>
+    <a href="{% url 'cliente_lista' %}">Clientes</a>
+    <a href="{% url 'medicamento_lista' %}">Medicamentos</a>
+    <a href="{% url 'reporte_medicamentos' %}">Reporte Medicamentos</a>
+    <a href="{% url 'reporte_clientes' %}">Reporte Clientes</a>
+</nav>
+<div class="container">
+    {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>

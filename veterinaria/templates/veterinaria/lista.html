@@ -1,0 +1,36 @@
+{% extends 'veterinaria/base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+
+<div class="top-bar">
+    <h1>{{ titulo }}</h1>
+    <a href="{{ url_crear }}" class="btn btn-green"> Nuevo</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            {% for columna in columnas %}
+                <th>{{ columna }}</th>
+            {% endfor %}
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for objeto in objetos %}
+        <tr>
+            {% for valor in objeto.valores %}
+                <td>{{ valor }}</td>
+            {% endfor %}
+            <td class="acciones">
+                <a href="{{ objeto.url_editar }}" class="btn btn-yellow"> Editar</a>
+                <a href="{{ objeto.url_eliminar }}" class="btn btn-red"> Eliminar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="99" style="text-align:center;color:#999">No hay registros aún.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

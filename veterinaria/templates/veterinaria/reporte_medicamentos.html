@@ -1,0 +1,35 @@
+{% extends 'veterinaria/base.html' %}
+{% block title %}Reporte Medicamentos{% endblock %}
+{% block content %}
+
+<div class="top-bar">
+    <h1>Reporte de Medicamentos</h1>
+    <button onclick="window.print()" class="btn btn-gray"> Imprimir</button>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Medicamento</th>
+            <th>Descripción</th>
+            <th>Dosis</th>
+            <th>Total Mascotas</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for med in medicamentos %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ med.nombre }}</td>
+            <td>{{ med.descripcion }}</td>
+            <td>{{ med.dosis }}</td>
+            <td>{{ med.total_mascotas }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;color:#999">No hay medicamentos registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
