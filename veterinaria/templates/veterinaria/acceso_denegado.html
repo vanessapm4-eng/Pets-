@@ -1,0 +1,12 @@
+{% extends 'veterinaria/base.html' %}
+{% block title %}Acceso denegado{% endblock %}
+{% block content %}
+
+<div class="form-card">
+    <h1>Acceso denegado</h1>
+    <p>No tienes permisos para ingresar a este módulo.</p>
+    <br>
+    <a href="{% url 'dashboard' %}" class="btn btn-gray">Volver al inicio</a>
+</div>
+
+{% endblock %}
