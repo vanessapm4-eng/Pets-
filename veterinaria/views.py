@@ -1,22 +1,171 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth import login, logout, update_session_auth_hash, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+
+from .forms import (
+    MascotaForm,
+    ClienteForm,
+    MedicamentoForm,
+    LoginForm,
+    UsuarioCreacionForm,
+    UsuarioEdicionForm,
+)
 from .models import Mascota, Cliente, Medicamento
-from .forms import MascotaForm, ClienteForm, MedicamentoForm
-from .services import MascotaService, ClienteService, MedicamentoService
+from .services import (
+    MascotaService,
+    ClienteService,
+    MedicamentoService,
+    UsuarioService,
+    AutenticacionService,
+    roles_requeridos,
+)
+
+User = get_user_model()
 
 
-# DASHBOARD
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+
+        if AutenticacionService.esta_bloqueado_por_intentos(username):
+            messages.error(
+                request,
+                'Tu usuario fue bloqueado por 3 intentos fallidos. Contacta al administrador.'
+            )
+            form = LoginForm(request, data=request.POST)
+            return render(request, 'veterinaria/login.html', {'form': form})
+
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            AutenticacionService.reiniciar_intentos(user)
+            messages.success(request, f'Bienvenido, {user.username}.')
+            return redirect('dashboard')
+
+        usuario_afectado = AutenticacionService.registrar_intento_fallido(username)
+
+        if usuario_afectado and AutenticacionService.esta_bloqueado_por_intentos(username):
+            messages.error(
+                request,
+                'Tu usuario fue bloqueado por 3 intentos fallidos. Contacta al administrador.'
+            )
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    else:
+        form = LoginForm()
+
+    return render(request, 'veterinaria/login.html', {'form': form})
+
+
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Sesión cerrada correctamente.')
+    return redirect('login')
+
+
+@login_required
+def acceso_denegado(request):
+    return render(request, 'veterinaria/acceso_denegado.html')
+
+
+@login_required
 def dashboard(request):
     context = {
         'total_mascotas': Mascota.objects.count(),
         'total_clientes': Cliente.objects.count(),
         'total_medicamentos': Medicamento.objects.count(),
+        'total_usuarios': User.objects.count(),
     }
     return render(request, 'veterinaria/dashboard.html', context)
 
 
-# MASCOTAS
+@roles_requeridos('Admin')
+def usuario_lista(request):
+    usuarios = UsuarioService.listar_todos()
+    objetos = []
+
+    for u in usuarios:
+        perfil = getattr(u, 'perfil', None)
+        nombre = perfil.nombre_completo if perfil else u.username
+        roles = ", ".join(u.groups.values_list('name', flat=True)) or 'Sin roles'
+
+        if u.is_active:
+            estado = 'Activo'
+        elif perfil and perfil.bloqueado_por_intentos:
+            estado = 'Bloqueado por intentos'
+        else:
+            estado = 'Inactivo'
+
+        u.valores = [u.username, nombre, roles, estado]
+        u.url_editar = reverse('usuario_editar', args=[u.pk])
+        objetos.append(u)
+
+    return render(request, 'veterinaria/lista.html', {
+        'titulo': 'Usuarios',
+        'columnas': ['Usuario', 'Nombre', 'Roles', 'Estado'],
+        'objetos': objetos,
+        'url_crear': reverse('usuario_crear'),
+    })
+
+
+@roles_requeridos('Admin')
+def usuario_crear(request):
+    if request.method == 'POST':
+        form = UsuarioCreacionForm(request.POST)
+        if form.is_valid():
+            UsuarioService.crear_usuario(form.cleaned_data)
+            messages.success(request, 'Usuario creado correctamente.')
+            return redirect('usuario_lista')
+    else:
+        form = UsuarioCreacionForm()
+
+    return render(request, 'veterinaria/form.html', {
+        'form': form,
+        'titulo': 'Nuevo Usuario',
+        'url_volver': reverse('usuario_lista')
+    })
+
+
+@roles_requeridos('Admin')
+def usuario_editar(request, pk):
+    usuario = get_object_or_404(User, pk=pk)
+
+    if request.method == 'POST':
+        form = UsuarioEdicionForm(request.POST, user_instance=usuario)
+        if form.is_valid():
+            try:
+                password_cambiada = bool(form.cleaned_data.get('password1'))
+                UsuarioService.actualizar_usuario(
+                    usuario_editar=usuario,
+                    cleaned_data=form.cleaned_data,
+                    acting_user=request.user
+                )
+
+                if password_cambiada and request.user.pk == usuario.pk:
+                    update_session_auth_hash(request, usuario)
+
+                messages.success(request, 'Usuario actualizado correctamente.')
+                return redirect('usuario_lista')
+            except ValueError as exc:
+                form.add_error(None, str(exc))
+    else:
+        form = UsuarioEdicionForm(user_instance=usuario)
+
+    return render(request, 'veterinaria/form.html', {
+        'form': form,
+        'titulo': f'Editar Usuario: {usuario.username}',
+        'url_volver': reverse('usuario_lista')
+    })
+
+
+@roles_requeridos('Admin', 'Recepcionista', 'Veterinario')
 def mascota_lista(request):
     mascotas = MascotaService.listar_todas()
     objetos = []
@@ -32,6 +181,8 @@ def mascota_lista(request):
         'url_crear': reverse('mascota_crear'),
     })
 
+
+@roles_requeridos('Admin', 'Recepcionista', 'Veterinario')
 def mascota_crear(request):
     if request.method == 'POST':
         form = MascotaForm(request.POST)
@@ -46,6 +197,8 @@ def mascota_crear(request):
         'url_volver': reverse('mascota_lista')
     })
 
+
+@roles_requeridos('Admin', 'Recepcionista', 'Veterinario')
 def mascota_editar(request, pk):
     mascota = get_object_or_404(Mascota, pk=pk)
     if request.method == 'POST':
@@ -61,6 +214,8 @@ def mascota_editar(request, pk):
         'url_volver': reverse('mascota_lista')
     })
 
+
+@roles_requeridos('Admin', 'Recepcionista', 'Veterinario')
 def mascota_eliminar(request, pk):
     mascota = get_object_or_404(Mascota, pk=pk)
     if request.method == 'POST':
@@ -70,7 +225,7 @@ def mascota_eliminar(request, pk):
     return render(request, 'veterinaria/confirmar_eliminar.html', {'objeto': mascota})
 
 
-# CLIENTES
+@roles_requeridos('Admin', 'Recepcionista')
 def cliente_lista(request):
     clientes = ClienteService.listar_todos()
     objetos = []
@@ -86,6 +241,8 @@ def cliente_lista(request):
         'url_crear': reverse('cliente_crear'),
     })
 
+
+@roles_requeridos('Admin', 'Recepcionista')
 def cliente_crear(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)
@@ -100,6 +257,8 @@ def cliente_crear(request):
         'url_volver': reverse('cliente_lista')
     })
 
+
+@roles_requeridos('Admin', 'Recepcionista')
 def cliente_editar(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     if request.method == 'POST':
@@ -115,6 +274,8 @@ def cliente_editar(request, pk):
         'url_volver': reverse('cliente_lista')
     })
 
+
+@roles_requeridos('Admin', 'Recepcionista')
 def cliente_eliminar(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     if request.method == 'POST':
@@ -124,7 +285,7 @@ def cliente_eliminar(request, pk):
     return render(request, 'veterinaria/confirmar_eliminar.html', {'objeto': cliente})
 
 
-# MEDICAMENTOS
+@roles_requeridos('Admin', 'Veterinario')
 def medicamento_lista(request):
     medicamentos = MedicamentoService.listar_todos()
     objetos = []
@@ -140,6 +301,8 @@ def medicamento_lista(request):
         'url_crear': reverse('medicamento_crear'),
     })
 
+
+@roles_requeridos('Admin', 'Veterinario')
 def medicamento_crear(request):
     if request.method == 'POST':
         form = MedicamentoForm(request.POST)
@@ -154,6 +317,8 @@ def medicamento_crear(request):
         'url_volver': reverse('medicamento_lista')
     })
 
+
+@roles_requeridos('Admin', 'Veterinario')
 def medicamento_editar(request, pk):
     medicamento = get_object_or_404(Medicamento, pk=pk)
     if request.method == 'POST':
@@ -169,6 +334,8 @@ def medicamento_editar(request, pk):
         'url_volver': reverse('medicamento_lista')
     })
 
+
+@roles_requeridos('Admin', 'Veterinario')
 def medicamento_eliminar(request, pk):
     medicamento = get_object_or_404(Medicamento, pk=pk)
     if request.method == 'POST':
@@ -178,11 +345,13 @@ def medicamento_eliminar(request, pk):
     return render(request, 'veterinaria/confirmar_eliminar.html', {'objeto': medicamento})
 
 
-# REPORTES
+@roles_requeridos('Admin', 'Veterinario')
 def reporte_medicamentos(request):
     medicamentos = MedicamentoService.reporte()
     return render(request, 'veterinaria/reporte_medicamentos.html', {'medicamentos': medicamentos})
 
+
+@roles_requeridos('Admin', 'Recepcionista')
 def reporte_clientes(request):
     clientes = ClienteService.reporte()
     return render(request, 'veterinaria/reporte_clientes.html', {'clientes': clientes})

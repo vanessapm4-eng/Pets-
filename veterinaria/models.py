@@ -1,4 +1,31 @@
+from django.conf import settings
 from django.db import models
+
+
+class PerfilUsuario(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='perfil'
+    )
+    nombres = models.CharField(max_length=100, verbose_name="Nombres")
+    apellidos = models.CharField(max_length=100, verbose_name="Apellidos")
+    telefono = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
+    documento = models.CharField(max_length=20, blank=True, verbose_name="Documento")
+    intentos_fallidos_login = models.PositiveIntegerField(default=0, verbose_name="Intentos fallidos de login")
+    bloqueado_por_intentos = models.BooleanField(default=False, verbose_name="Bloqueado por intentos fallidos")
+
+    class Meta:
+        verbose_name = "Perfil de usuario"
+        verbose_name_plural = "Perfiles de usuario"
+        ordering = ['nombres', 'apellidos']
+
+    def __str__(self):
+        return f"{self.nombres} {self.apellidos}".strip() or self.user.username
+
+    @property
+    def nombre_completo(self):
+        return f"{self.nombres} {self.apellidos}".strip()
 
 
 class Medicamento(models.Model):

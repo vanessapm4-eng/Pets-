@@ -2,8 +2,18 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Auth
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('acceso-denegado/', views.acceso_denegado, name='acceso_denegado'),
+
     # Dashboard
     path('', views.dashboard, name='dashboard'),
+
+    # Usuarios
+    path('usuarios/', views.usuario_lista, name='usuario_lista'),
+    path('usuarios/nuevo/', views.usuario_crear, name='usuario_crear'),
+    path('usuarios/<int:pk>/editar/', views.usuario_editar, name='usuario_editar'),
 
     # Mascotas
     path('mascotas/', views.mascota_lista, name='mascota_lista'),

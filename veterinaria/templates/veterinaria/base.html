@@ -1,4 +1,4 @@
-{% load static %}
+{% load static auth_extras %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,19 +7,48 @@
     <link rel="stylesheet" href="{% static 'estilos.css' %}">
 </head>
 <body>
+
 <nav>
-    <a href="{% url 'dashboard' %}">🐾 PETS S.A.</a>
-    <a href="{% url 'mascota_lista' %}">Mascotas</a>
-    <a href="{% url 'cliente_lista' %}">Clientes</a>
-    <a href="{% url 'medicamento_lista' %}">Medicamentos</a>
-    <a href="{% url 'reporte_medicamentos' %}">Reporte Medicamentos</a>
-    <a href="{% url 'reporte_clientes' %}">Reporte Clientes</a>
+    <div class="nav-left">
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}">🐾 PETS S.A.</a>
+
+            {% if user|has_any_group:'Admin,Recepcionista,Veterinario' %}
+                <a href="{% url 'mascota_lista' %}">Mascotas</a>
+            {% endif %}
+
+            {% if user|has_any_group:'Admin,Recepcionista' %}
+                <a href="{% url 'cliente_lista' %}">Clientes</a>
+                <a href="{% url 'reporte_clientes' %}">Reporte Clientes</a>
+            {% endif %}
+
+            {% if user|has_any_group:'Admin,Veterinario' %}
+                <a href="{% url 'medicamento_lista' %}">Medicamentos</a>
+                <a href="{% url 'reporte_medicamentos' %}">Reporte Medicamentos</a>
+            {% endif %}
+
+            {% if user|has_group:'Admin' %}
+                <a href="{% url 'usuario_lista' %}">Usuarios</a>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'login' %}">🐾 PETS S.A.</a>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+        <div class="nav-right">
+            <span class="user-badge">{{ user.username }}</span>
+            <a href="{% url 'logout' %}">Cerrar sesión</a>
+        </div>
+    {% endif %}
 </nav>
+
 <div class="container">
     {% for message in messages %}
         <div class="alert">{{ message }}</div>
     {% endfor %}
     {% block content %}{% endblock %}
 </div>
+
 </body>
 </html>

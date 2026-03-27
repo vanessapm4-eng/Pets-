@@ -7,18 +7,33 @@
     <a href="{{ url_volver }}" class="btn btn-gray">← Volver</a>
 </div>
 
-<div style="background:white; padding:1.5rem; border-radius:8px; max-width:600px;">
+<div class="form-card">
     <form method="POST">
         {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="error-box">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% for field in form %}
         <div class="form-group">
             <label>{{ field.label }}</label>
             {{ field }}
+
+            {% if field.help_text %}
+                <small class="help-text">{{ field.help_text }}</small>
+            {% endif %}
+
             {% if field.errors %}
-                <p style="color:red; font-size:0.85rem;">{{ field.errors.0 }}</p>
+                <p class="field-error">{{ field.errors.0 }}</p>
             {% endif %}
         </div>
         {% endfor %}
+
         <br>
         <button type="submit" class="btn btn-green">Guardar</button>
         <a href="{{ url_volver }}" class="btn btn-gray">Cancelar</a>

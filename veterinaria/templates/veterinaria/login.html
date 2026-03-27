@@ -1,0 +1,39 @@
+{% extends 'veterinaria/base.html' %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block content %}
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Iniciar sesión</h1>
+        <p class="login-subtitle">PETS S.A. - Centro Veterinario de Cartagena</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="error-box">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <p class="field-error">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        <p class="login-note">
+            Minimo 8 caracteres
+        </p>
+            <button type="submit" class="btn btn-green btn-full">Ingresar</button>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

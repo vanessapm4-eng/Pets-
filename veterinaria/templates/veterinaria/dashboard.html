@@ -1,4 +1,5 @@
 {% extends 'veterinaria/base.html' %}
+{% load auth_extras %}
 {% block title %}Inicio{% endblock %}
 {% block content %}
 
@@ -12,21 +13,38 @@
         <th>Total registros</th>
         <th>Acción</th>
     </tr>
+
+    {% if user|has_any_group:'Admin,Recepcionista,Veterinario' %}
     <tr>
-        <td> Mascotas</td>
+        <td>Mascotas</td>
         <td>{{ total_mascotas }}</td>
         <td><a href="{% url 'mascota_lista' %}" class="btn btn-green">Ver</a></td>
     </tr>
+    {% endif %}
+
+    {% if user|has_any_group:'Admin,Recepcionista' %}
     <tr>
-        <td> Clientes</td>
+        <td>Clientes</td>
         <td>{{ total_clientes }}</td>
         <td><a href="{% url 'cliente_lista' %}" class="btn btn-green">Ver</a></td>
     </tr>
+    {% endif %}
+
+    {% if user|has_any_group:'Admin,Veterinario' %}
     <tr>
-        <td> Medicamentos</td>
+        <td>Medicamentos</td>
         <td>{{ total_medicamentos }}</td>
         <td><a href="{% url 'medicamento_lista' %}" class="btn btn-green">Ver</a></td>
     </tr>
+    {% endif %}
+
+    {% if user|has_group:'Admin' %}
+    <tr>
+        <td>Usuarios</td>
+        <td>{{ total_usuarios }}</td>
+        <td><a href="{% url 'usuario_lista' %}" class="btn btn-green">Ver</a></td>
+    </tr>
+    {% endif %}
 </table>
 
 {% endblock %}
