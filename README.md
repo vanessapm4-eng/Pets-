@@ -1,9 +1,15 @@
-# PETS S.A. Es un Sistema de Gestión Veterinaria
-Centro Veterinario de Cartagena, Colombia
+# Pets-management-system Es un Sistema de Gestión Veterinaria
 
 ##  Descripción
-Aplicación web desarrollada con Django para gestionar 
-la información del centro veterinario PETS S.A.
+Este proyecto consiste en una aplicación desarrollada para gestionar información de mascotas, permitiendo registrar, consultar y organizar datos de forma estructurada.
+
+## Funcionalidades
+- Registro de mascotas
+- Consulta de información
+- Gestión de datos
+
+## Objetivo
+Aplicar conceptos de programación y estructuras de datos en un sistema funcional.
 
 ##  Arquitectura por capas
 - **Capa 1 - Modelos** → `models.py`
@@ -23,9 +29,16 @@ la información del centro veterinario PETS S.A.
 ```bash
 pip install django
 python manage.py migrate
+
+
 python manage.py runserver
 ```
+## Cómo ejecutar el proyecto
+1. Clonar el repositorio
+2. Ejecutar el archivo principal
+3. Seguir instrucciones en consola
 
+   
 ## Módulos
 - Mascotas — CRUD completo
 - Clientes — CRUD completo
