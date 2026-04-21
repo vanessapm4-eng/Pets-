@@ -1,4 +1,4 @@
-# Pets-management-system Es un Sistema de Gestión Veterinaria
+# Sistema de Gestión de Mascotas
 
 ##  Descripción
 Este proyecto consiste en una aplicación desarrollada para gestionar información de mascotas, permitiendo registrar, consultar y organizar datos de forma estructurada.
@@ -45,3 +45,9 @@ python manage.py runserver
 - Medicamentos — CRUD completo
 - Reporte de clientes
 - Reporte de medicamentos
+
+## Estado del proyecto
+Proyecto académico en desarrollo
+
+## Autor
+Vanessa Palacios
